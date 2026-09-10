@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 
+import streamlit as st
 from crewai import LLM
 from crewai.llms import cache as crewai_cache
 from dotenv import load_dotenv
@@ -31,6 +32,11 @@ def _is_rate_limit_error(error: BaseException) -> bool:
 def build_llm() -> LLM:
     """Create the free-tier Groq chat model from the environment."""
     api_key = os.getenv("GROQ_API_KEY") or os.getenv("groq_api_key")
+    if not api_key:
+        try:
+            api_key = st.secrets.get("GROQ_API_KEY") or st.secrets.get("groq_api_key")
+        except (FileNotFoundError, KeyError):
+            api_key = None
     if not api_key:
         raise RuntimeError("Set GROQ_API_KEY before asking the assistant a question.")
     return LLM(model=MODEL_NAME, api_key=api_key, temperature=0.2)
